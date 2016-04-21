@@ -1,0 +1,36 @@
+
+<!DOCTYPE html>
+<html>   
+<head>
+   <script src="http://apps.bdimg.com/libs/angular.js/1.4.6/angular.min.js"></script>
+  <script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
+  <!--  <link href="style.css"link rel="stylesheet" type="text/css"/>  -->
+</head>
+   
+
+
+<body ng-app="myApp" ng-init = "strwid=5 opacity=50">
+   
+    <input type="range" ng-model="strwid">Stroke Width</input>
+    <br>
+    <input type="range" ng-model="opacity">Opacity</input>
+    <br>
+   
+    <parallel-coordinate strwid = "strwid" opacity="opacity">  
+        <div id='chart'></div>
+    </parallel-coordinate>     
+   
+   
+      
+   <!-- 
+    
+   -- 
+    
+
+-->
+<script type="text/javascript" src="src/slider.js"></script>
+
+</body>
+
+
+</html>
