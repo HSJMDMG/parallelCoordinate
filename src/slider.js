@@ -14,6 +14,7 @@ var myApp = angular.module('myApp', []);
                     var colornum =  10;  //10/20
                     var strokewidthscale = 10;
                     var opacityscale = 100;
+                    var dragoffset = 25;
                     var lineFunction = d3.svg.line()
                                       .x(function(d) { return d.x;})
                                       .y(function(d) { return d.y;})
@@ -64,23 +65,51 @@ var myApp = angular.module('myApp', []);
                           //Axis
                         var axis = svg.select('#axisSet').selectAll('.axis')
                                          .data(Object.keys(dataset[0])); //mapping axis per keys in the dataset (ie 'a','b','c'...)
-
+                    
                          /*Drag*/
                         function dragmove(d) {
-                            console.log(d);
+                            //console.log(d);
                            //为什么是列名？！
                             // console.log(d.dx)
-                            ;
-                            d.dx = +d3.event.dx;
+                            //console.log('axis[i]');
+                            //console.log(i);
+                            //console.log(axis[i]);
+                            //console.log(d3.event.x);
+                        //    d.dx = d3.event.x;
                             d3.select(this)
-                                    .attr('transform', 'translate('+d.dx+')');
+                                    .attr('transform', 'translate('+d3.event.x+')');
                         }
                       
+                        function dragstart(d) {
+                            
+                        
+                           /* var axispath = d3.select(this).select('path');
+                            var  = node.cloneNode(true)
+                            element.appendChild(cNode)*/
+                            d3.select(this)
+                                    .attr('stroke', '#66CCFF');
+                            
+                            d3.select(this)
+                                .select('path')
+                                .attr('fill', '#66CCFF')
+                                .attr('opacity', 0.8);
+                        }
+                         
+                        function dragend(d) {
+                            d3.select(this)
+                                    .attr('stroke', 'null');
+                            d3.select(this)
+                                    .select('path')
+                                    .attr('fill', 'null')
+                                    .attr('opacity', 1);
+                        }
+                         
+                         
                         var drag = d3.behavior.drag()
                                         .origin(null)
                                         .on('drag', dragmove)
-                                        .on('dragstart',function(d){console.log('start');})
-                                        .on('dragend', function(d){console.log('end');})
+                                        .on('dragstart',dragstart)
+                                        .on('dragend', dragend);
 
                                    axis.enter()
                                          .append('g')
@@ -88,7 +117,8 @@ var myApp = angular.module('myApp', []);
                                          .append('text')
                                          .text(function(d){return d;})
                                          .attr('y', padding);// position of attribute name 
-
+                         
+                         
                                     axis //.transition()
                                         //.duration(1000)
                                         .attr('transform',function(d,i){return 'translate('+ (padding + i * (width - 2 * padding)/(keynum - 1))+')';})
@@ -100,10 +130,16 @@ var myApp = angular.module('myApp', []);
                                             });
                          
                          
-                                    /*Drag*/
-                                    axis.call(drag);
+                              //  console.log('axis!!!!!!!!')
+                            //    console.log(axis);
+                                    //Drag
+                                var Yaxis = svg.select('#axisSet').selectAll('.axis');
+                                Yaxis.each(function(d){
+                                    d3.select(this).call(drag);
+                                    
+                                })
                          
-
+                                
                                     axis.exit()
                                         .remove();
 
