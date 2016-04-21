@@ -29,7 +29,17 @@ var myApp = angular.module('myApp', []);
                     svg.append('g')
                     .attr('id','axisSet');
 
+                    var brush = d3.svg.brush()  //点击拖拽选择一个二维区域。
+                                    .x(x2)
+                                    .y(y2)
+                                    .on('brush', onBrush);
                     
+                    function onBrush() {
+                        var extent = brush.extent();
+                        /* 调整相应图1的x轴坐标和y轴坐标范围 */
+                       
+                       
+                    }
                     
                     
                     //console.log(dataset);
@@ -60,6 +70,10 @@ var myApp = angular.module('myApp', []);
                             });
                             return newDataset;
                         };
+                    
+                    //update dataset after drag
+                   
+                    
 
                      function DrawAxis() {
                           //Axis
@@ -102,6 +116,15 @@ var myApp = angular.module('myApp', []);
                                     .select('path')
                                     .attr('fill', 'null')
                                     .attr('opacity', 1);
+                        
+                        function UpdateDataset(d)
+                        {
+                        
+                        }
+                            UpdateDataset(d);
+                       
+                            DrawAxis();
+                            DrawLine();
                         }
                          
                          
@@ -143,8 +166,12 @@ var myApp = angular.module('myApp', []);
                                     axis.exit()
                                         .remove();
 
-                     } 
-                     function DrawLine() {
+                     }
+                    
+                    function DrawLine() {
+                            
+                            svg.select('#lineSet').selectAll('.lines').remove();
+                            
                             var lines = svg.select('#lineSet').selectAll('.lines')
                                                             .data(reShapeData(dataset));
                           //      console.log(lines);
