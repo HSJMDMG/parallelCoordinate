@@ -10,6 +10,7 @@ var myApp = angular.module('myApp', []);
                     var height = 600;
                     var padding = 50;
                     var innerWidth = width - 2 * padding;
+                    var innerHeight = height - padding;
                     var keynum = dataset[0] ? Object.keys(dataset[0]).length: 0; 
                     var color = d3.scale.category10();
                     var colornum =  10;  //10/20
@@ -17,6 +18,9 @@ var myApp = angular.module('myApp', []);
                     var opacityscale = 100;
                     var dragoffset = 25;
                     var dimensions = Object.keys(dataset[0]);
+                    
+                    
+                    
                     var lineFunction = d3.svg.line()
                                       .x(function(d) { return d.x;})
                                       .y(function(d) { return d.y;})
@@ -25,7 +29,7 @@ var myApp = angular.module('myApp', []);
                     
                     
                     
-                    console.log(dataset[0]);
+                  //  console.log(dataset[0]);
                     var Xdomain = new Array();
                     var i = 0;
                     for (attr in dataset[0])
@@ -34,19 +38,22 @@ var myApp = angular.module('myApp', []);
                         i++;
                     }
                     
-                    console.log('Xdomain')
-                    console.log(Xdomain);
-                    //!!!最左边最右边有点歪
-                   /* var ordinal = d3.scale.ordinal().domain([1,2,3,4,5]).rangePoints([0,100]);
-                    console.log('ordinal')
-                    console.log( ordinal.range());
-                    ordinal.rangePoints([padding, width - padding],5);
-                    console.log( ordinal.range() );
-                    console.log(padding);
-                    console.log(width);
-                    */
-                    var x = d3.scale.ordinal().domain(Xdomain);
-                    x.rangePoints([padding, width - padding]);
+              
+                 
+                    var x = d3.scale.ordinal().domain(Xdomain)
+                                                .rangePoints([padding, width - padding]);
+                    var y = new Array();
+                    function domainGenerator(dimension, data){
+                            return d3.extent(data, function(d) { return +d[dimension]; });
+                    }
+                    
+                //    console.log(dimensions);
+                    
+                    dimensions.forEach(function(d) {
+                                        y[d] = d3.scale.linear()
+                                                .range([innerHeight, 0])
+                                                .domain(domainGenerator(d, dataset));
+                                            })
                     
                     
                     
@@ -91,7 +98,7 @@ var myApp = angular.module('myApp', []);
                          //console.log(height - padding);
                      };
 
-                    //dataset --> (x,y)
+                    //dataset --> (x,y,z)  z: dimension name
                     function reShapeData(dataset){
 
                             //line() only works if you provide an array of coordinates[{x:,y:},{x:,y:}...]
@@ -105,9 +112,17 @@ var myApp = angular.module('myApp', []);
                                 newDataset.push([]);
                                 Object.keys(group).forEach(function(key,indexKey){
                                     //console.log(key); key:attribute name
-                                    newDataset[indexGroup].push({x:padding + indexKey*( width -2 * padding)/(keynum - 1), y:CreateScale(key)(group[key])});
+                                    newDataset[indexGroup].push({x:padding + indexKey*( width -2 * padding)/(keynum - 1), y:CreateScale(key)(group[key]), z:dimensions[indexKey]});
                                 });
                             });
+                          /*  console.log('newwwwwwwwwwwww')
+                            console.log(newDataset);*/
+                        
+                        newDataset.forEach(function(group, indexGroup){
+                          //  console.log(dimensions);
+                           d3.selectAll(group).data(dimensions);
+                             //   console.log(group);
+                        })
                             return newDataset;
                         };
                     
@@ -122,15 +137,35 @@ var myApp = angular.module('myApp', []);
                         var axis = svg.select('#axisSet').selectAll('.axis')
                                          .data(Object.keys(dataset[0])); //mapping axis per keys in the dataset (ie 'a','b','c'...)
                         
-                        var line = d3.svg.line();
+                        //var line = d3.svg.line();
                     
                          /*Drag*/
                          //?????
                          var dragging = {};
 
+
+                          var updateLineFunction = d3.svg.line()
+                                      /*.x(function(d) { return position(d.z);})
+                                      .y(function(d) { return d.y;})*/
+                                     .interpolate("linear");    
+                         
+                         // // Returns the path for a given data point.
                         function path(d) {
-                            return line(axis.map(function(p) { 
-                                    return [position(p), axis[p](d[p])]; 
+                           /* console.log('patttttttttttttttttttth')
+                            console.log(d);*/
+                            return updateLineFunction(dimensions.map(function(p) { 
+                                   /* console.log('y[p]!!!!!!!!!!!!!')
+                                    console.log(y[p]);
+                                    console.log(p);
+                                ///y[d[p]]
+                                console.log(d[p]);*/
+                                    console.log(d);
+                                    var py = d[0].y;
+                                    for (var i = 0; i < d.length; i++) {
+                                        if (d[i].z == p) {py = d[i].y; break;}
+                                    }
+                        
+                                    return [position(p), py]; 
                                     }));
                         }
 
@@ -143,7 +178,7 @@ var myApp = angular.module('myApp', []);
                             return v == null ? x(d) : v;
                         }
                          
-                         
+                           
                         function dragmove(d) {
                             //console.log(d);
                            //为什么是列名？！
@@ -163,7 +198,10 @@ var myApp = angular.module('myApp', []);
                             console.log('darggingd');
                             console.log(dragging[d]);
                             
-                            svg.select('#lineSet').selectAll('.lines').attr('d', path);
+                          
+                         
+                        
+                            
                             dimensions.sort(function(a, b) { return position(a) - position(b); });
                           //  console.log('dimension')
                         //    console.log(dimensions);
@@ -175,6 +213,11 @@ var myApp = angular.module('myApp', []);
                                 console.log(d);
                                 console.log(position(d));*/
                                 return 'translate(' + position(d) + ')'; });
+                            
+                            
+                              //update Lines
+                            svg.select('#lineSet').selectAll('.lines').attr('d', path);
+                            
                         }
                       
                         function dragstart(d) {
@@ -207,12 +250,12 @@ var myApp = angular.module('myApp', []);
                             
                             delete this.__origin__;
                             delete dragging[d];
-                            console.log('x-d');
-                            console.log(x(d));
+                      //      console.log('x-d');
+                    //        console.log(x(d));
                             d3.select(this).attr('transform', 'translate(' + x(d) + ')');
+                            svg.select('#lineSet').selectAll('.lines').attr('d', path);
                             
-                            
-                            svg.select('.lineSet').select('.lines').attr('d', path);
+         
                             
                             
                             function ReOrderAxis() {
@@ -279,24 +322,16 @@ var myApp = angular.module('myApp', []);
                             
                             var lines = svg.select('#lineSet').selectAll('.lines')
                                                             .data(reShapeData(dataset));
-                          //      console.log(lines);
+                                console.log(lines);
 
                                     lines.enter()
                                             .append('path')
                                             .attr('class','lines')
                                             .attr('fill', 'none')
-                                            .attr('d','M'+ padding +' ' + (height / 2)+' L'+(width - padding)+' '+(height /2) + '');
+                                         //   .attr('d','M'+ padding +' ' + (height / 2)+' L'+(width - padding)+' '+(height /2) + '');
 
-                               // console.log(lines)
-
-
-                                            //??
-                                        //   .attr('stroke-width', '1px')
-
-
-                       //     console.log(color);
-                                  
-                         
+                            
+                              //alert('A');  
                          lines.attr('stroke-width',5).attr('stroke-opacity',0.5);
                          
                                     lines.transition()
